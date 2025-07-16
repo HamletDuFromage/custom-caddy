@@ -84,11 +84,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Save latest version to file
-        run: echo "${{ needs.check.outputs.latest_tag }}" > LAST_CADDY_RELEASE.txt
-
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Save latest version to file
+        run: echo "${{ needs.check.outputs.latest_tag }}" > LAST_CADDY_RELEASE.txt
 
       - name: Commit updated LAST_CADDY_RELEASE.txt
         run: |
