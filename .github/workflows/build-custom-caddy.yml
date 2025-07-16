@@ -56,9 +56,6 @@ jobs:
       contents: write  # Needed to push version file and create release
     if: needs.check.outputs.should_build == 'true'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -89,6 +86,9 @@ jobs:
 
       - name: Save latest version to file
         run: echo "${{ needs.check.outputs.latest_tag }}" > LAST_CADDY_RELEASE.txt
+
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Commit updated LAST_CADDY_RELEASE.txt
         run: |
