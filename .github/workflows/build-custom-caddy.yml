@@ -1,0 +1,100 @@
+name: Build Custom Caddy if New Version Available
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *'  # Every hour
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Needed to push version file and create release
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Fetch latest Caddy release (authenticated)
+        id: caddy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          latest=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/caddyserver/caddy/releases/latest | jq -r .tag_name)
+          echo "Latest Caddy version: $latest"
+          echo "latest_tag=$latest" >> $GITHUB_OUTPUT
+
+      - name: Read last built version (if exists)
+        id: last_built
+        run: |
+          if [ -f LAST_CADDY_RELEASE.txt ]; then
+            last=$(cat LAST_CADDY_RELEASE.txt)
+            echo "Last built version: $last"
+            echo "last_built=$last" >> $GITHUB_OUTPUT
+          else
+            echo "No previous version found"
+            echo "last_built=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Compare versions
+        id: should_build
+        run: |
+          if [ "${{ steps.caddy.outputs.latest_tag }}" != "${{ steps.last_built.outputs.last_built }}" ]; then
+            echo "New version detected!"
+            echo "build_needed=true" >> $GITHUB_OUTPUT
+          else
+            echo "No new version."
+            echo "build_needed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Exit if no new version
+        if: steps.should_build.outputs.build_needed == 'false'
+        run: exit 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Install xcaddy
+        run: go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+
+      - name: Build custom Caddy
+        run: |
+          xcaddy build ${{ steps.caddy.outputs.latest_tag }} \
+            --with github.com/caddy-dns/cloudflare \
+            --with github.com/hslatman/caddy-crowdsec-bouncer/http
+          mv caddy caddy-${{ steps.caddy.outputs.latest_tag }}
+          chmod +x caddy-${{ steps.caddy.outputs.latest_tag }}
+
+      - name: Create GitHub release (if needed)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: custom-${{ steps.caddy.outputs.latest_tag }}
+          name: Custom Caddy - ${{ steps.caddy.outputs.latest_tag }}
+          body: |
+            Built with:
+            - github.com/caddy-dns/cloudflare
+            - github.com/hslatman/caddy-crowdsec-bouncer/http
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload binary to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: custom-${{ steps.caddy.outputs.latest_tag }}
+          files: caddy-${{ steps.caddy.outputs.latest_tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Save latest version to file
+        run: echo "${{ steps.caddy.outputs.latest_tag }}" > LAST_CADDY_RELEASE.txt
+
+      - name: Commit updated LAST_CADDY_RELEASE.txt
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add LAST_CADDY_RELEASE.txt
+          git commit -m "Update last built Caddy version to ${{ steps.caddy.outputs.latest_tag }}"
+          git push
