@@ -6,10 +6,12 @@ on:
     - cron: '0 0 * * *'  # Every day
 
 jobs:
-  check-and-build:
+  check:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Needed to push version file and create release
+    outputs:
+      should_run: ${{ steps.should_build.outputs.build_needed }}
 
     steps:
       - name: Checkout code
@@ -48,10 +50,12 @@ jobs:
             echo "build_needed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Exit if no new version
-        if: steps.should_build.outputs.build_needed == 'false'
-        run: exit 0
-
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+    contents: write  # Needed to push version file and create release
+    if: needs.check.outputs.should_build == 'true'
+    steps:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
