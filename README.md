@@ -1,6 +1,6 @@
 # custom-caddy
 
-Github workflow building the my custom caddy binary
+Github workflow building my custom caddy binary for my personal use
 
 ```
 xcaddy build \
