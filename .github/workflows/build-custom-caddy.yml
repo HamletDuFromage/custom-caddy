@@ -50,6 +50,7 @@ jobs:
           fi
 
   build:
+    needs: check
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Needed to push version file and create release
