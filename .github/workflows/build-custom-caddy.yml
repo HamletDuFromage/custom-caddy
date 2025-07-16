@@ -65,8 +65,7 @@ jobs:
           xcaddy build ${{ steps.caddy.outputs.latest_tag }} \
             --with github.com/caddy-dns/cloudflare \
             --with github.com/hslatman/caddy-crowdsec-bouncer/http
-          mv caddy caddy-${{ steps.caddy.outputs.latest_tag }}
-          chmod +x caddy-${{ steps.caddy.outputs.latest_tag }}
+          mv caddy caddy-custom
 
       - name: Create GitHub release (if needed)
         uses: softprops/action-gh-release@v2
