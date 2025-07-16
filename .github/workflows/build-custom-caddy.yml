@@ -3,7 +3,7 @@ name: Build Custom Caddy if New Version Available
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 * * * *'  # Every hour
+    - cron: '0 0 * * *'  # Every day
 
 jobs:
   check-and-build:
@@ -77,7 +77,7 @@ jobs:
             Built with:
             - github.com/caddy-dns/cloudflare
             - github.com/hslatman/caddy-crowdsec-bouncer/http
-          files: caddy-${{ steps.caddy.outputs.latest_tag }}
+          files: caddy-custom
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
