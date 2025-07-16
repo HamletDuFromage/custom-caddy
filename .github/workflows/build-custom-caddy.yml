@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       latest_tag: ${{ steps.caddy.outputs.latest_tag }}
-      should_build: ${{ steps.should_build.outputs.build_needed }}
+      should_build: ${{ steps.should_build.outputs.should_build }}
 
     steps:
       - name: Checkout code
@@ -43,10 +43,10 @@ jobs:
         run: |
           if [ "${{ steps.caddy.outputs.latest_tag }}" != "${{ steps.last_built.outputs.last_built }}" ]; then
             echo "New version detected!"
-            echo "build_needed=true" >> $GITHUB_OUTPUT
+            echo "should_build=true" >> $GITHUB_OUTPUT
           else
             echo "No new version."
-            echo "build_needed=false" >> $GITHUB_OUTPUT
+            echo "should_build=false" >> $GITHUB_OUTPUT
           fi
 
   build:
