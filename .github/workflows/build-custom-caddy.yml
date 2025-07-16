@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       latest_tag: ${{ steps.caddy.outputs.latest_tag }}
+      should_build: ${{ steps.should_build.outputs.build_needed }}
 
     steps:
       - name: Checkout code
@@ -42,16 +43,17 @@ jobs:
         run: |
           if [ "${{ steps.caddy.outputs.latest_tag }}" != "${{ steps.last_built.outputs.last_built }}" ]; then
             echo "New version detected!"
+            echo "build_needed=true" >> $GITHUB_OUTPUT
           else
             echo "No new version."
-            echo "latest_tag=" >> $GITHUB_OUTPUT
+            echo "build_needed=false" >> $GITHUB_OUTPUT
           fi
 
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Needed to push version file and create release
-    if: needs.check.outputs.latest_tag
+    if: needs.check.outputs.should_build == 'true'
     steps:
       - name: Set up Go
         uses: actions/setup-go@v5
