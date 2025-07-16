@@ -77,13 +77,6 @@ jobs:
             Built with:
             - github.com/caddy-dns/cloudflare
             - github.com/hslatman/caddy-crowdsec-bouncer/http
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload binary to release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: custom-${{ steps.caddy.outputs.latest_tag }}
           files: caddy-${{ steps.caddy.outputs.latest_tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
