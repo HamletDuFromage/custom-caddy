@@ -9,7 +9,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Needed to push version file and create release
+      contents: write  # Needed to push version file
     outputs:
       should_run: ${{ steps.should_build.outputs.build_needed }}
 
@@ -50,10 +50,21 @@ jobs:
             echo "build_needed=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Save latest version to file
+        run: echo "${{ steps.caddy.outputs.latest_tag }}" > LAST_CADDY_RELEASE.txt
+
+      - name: Commit updated LAST_CADDY_RELEASE.txt
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add LAST_CADDY_RELEASE.txt
+          git commit -m "Update last built Caddy version to ${{ steps.caddy.outputs.latest_tag }}"
+          git push
+
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Needed to push version file and create release
+      contents: write  # Needed to create release
     if: needs.check.outputs.should_build == 'true'
     steps:
       - name: Set up Go
@@ -71,7 +82,13 @@ jobs:
             --with github.com/hslatman/caddy-crowdsec-bouncer/http
           mv caddy caddy-custom
 
-      - name: Create GitHub release (if needed)
+      - name: Get tag from LAST_CADDY_RELEASE.txt
+        id: version_file
+        run: |
+          TAG=$(cat LAST_CADDY_RELEASE.txt)
+          echo "latest_tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: custom-${{ steps.caddy.outputs.latest_tag }}
@@ -83,14 +100,3 @@ jobs:
           files: caddy-custom
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Save latest version to file
-        run: echo "${{ steps.caddy.outputs.latest_tag }}" > LAST_CADDY_RELEASE.txt
-
-      - name: Commit updated LAST_CADDY_RELEASE.txt
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add LAST_CADDY_RELEASE.txt
-          git commit -m "Update last built Caddy version to ${{ steps.caddy.outputs.latest_tag }}"
-          git push
