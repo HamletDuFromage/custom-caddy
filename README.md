@@ -2,8 +2,10 @@
 
 Github workflow building my custom caddy binary for my personal use
 
-```
-xcaddy build \
-    --with github.com/caddy-dns/cloudflare \
-    --with github.com/hslatman/caddy-crowdsec-bouncer/http
+To use as your own, populate CADDY_PLUGINS.txt as follows (replace with your plugins)
+
+``` bash
+$ cat CADDY_PLUGINS.txt
+github.com/caddy-dns/cloudflare
+github.com/hslatman/caddy-crowdsec-bouncer/http
 ```

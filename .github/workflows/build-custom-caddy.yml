@@ -83,8 +83,7 @@ jobs:
           tag_name: custom-${{ needs.check.outputs.latest_tag }}
           name: Custom Caddy - ${{ needs.check.outputs.latest_tag }}
           body: |
-            xcaddy build
-            ${{ steps.plugins.outputs.plugin_args }}
+            xcaddy build ${{ steps.plugins.outputs.plugin_args }}
           files: caddy-custom
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
