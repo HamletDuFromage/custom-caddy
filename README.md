@@ -1,8 +1,8 @@
 # custom-caddy
 
-Github workflow building my custom caddy binary for my personal use
+Github workflow building a custom caddy binary. Run every day and builds+publishes a new binary if caddy received a new update.
 
-To use as your own, populate CADDY_PLUGINS.txt as follows (replace with your plugins)
+To use as your own, populate CADDY_PLUGINS.txt as follows (replace with your plugins).
 
 ``` bash
 $ cat CADDY_PLUGINS.txt
