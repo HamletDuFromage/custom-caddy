@@ -64,11 +64,14 @@ jobs:
       - name: Install xcaddy
         run: go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
 
+      - name: Read plugin list from file
+        id: plugins
+        run: |
+          echo "plugin_args=$(sed 's/^/--with /' CADDY_PLUGINS.txt | xargs)" >> $GITHUB_OUTPUT
+
       - name: Build custom Caddy
         run: |
-          xcaddy build ${{ needs.check.outputs.latest_tag }} \
-            --with github.com/caddy-dns/cloudflare \
-            --with github.com/hslatman/caddy-crowdsec-bouncer/http
+          xcaddy build ${{ needs.check.outputs.latest_tag }} ${{ steps.plugins.outputs.plugin_args }}
           mv caddy caddy-custom
 
       - name: Create GitHub release
@@ -77,9 +80,8 @@ jobs:
           tag_name: custom-${{ needs.check.outputs.latest_tag }}
           name: Custom Caddy - ${{ needs.check.outputs.latest_tag }}
           body: |
-            Built with:
-            - github.com/caddy-dns/cloudflare
-            - github.com/hslatman/caddy-crowdsec-bouncer/http
+            xcaddy build
+            ${{ steps.plugins.outputs.plugin_args }}
           files: caddy-custom
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
