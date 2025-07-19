@@ -64,6 +64,9 @@ jobs:
       - name: Install xcaddy
         run: go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
 
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Read plugin list from file
         id: plugins
         run: |
@@ -85,9 +88,6 @@ jobs:
           files: caddy-custom
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checkout code
-        uses: actions/checkout@v4
 
       - name: Save latest version to file
         run: echo "${{ needs.check.outputs.latest_tag }}" > LAST_CADDY_RELEASE.txt
