@@ -83,6 +83,7 @@ jobs:
           tag_name: custom-${{ needs.check.outputs.latest_tag }}
           name: Custom Caddy - ${{ needs.check.outputs.latest_tag }}
           body: |
+            https://github.com/caddyserver/caddy/releases/tag/${{ needs.check.outputs.latest_tag }}
             xcaddy build ${{ steps.plugins.outputs.plugin_args }}
           files: caddy-custom
         env:
